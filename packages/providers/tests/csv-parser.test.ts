@@ -75,7 +75,6 @@ describe("CSV providers", () => {
   it("parses the valid forecast fixture across all imported runs", async () => {
     const runs = await parseForecastRunsCsvFile(path.join(fixturesDir, "forecast_data_valid.csv"));
 
-    expect(runs.length).toBeGreaterThanOrEqual(5);
     expect(runs.length).toBeGreaterThanOrEqual(1000);
     expect(runs.every((run) => run.forecasts.length >= 40)).toBe(true);
     expect(runs.every((run) => run.demandDrivers.length >= 40)).toBe(true);
