@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 
 import { z } from "zod";
@@ -17,11 +18,33 @@ const RootEnvSchema = z.object({
 });
 
 export type AppConfig = z.infer<typeof RootEnvSchema> & {
+  workspaceRoot: string;
   resolvedDataDir: string;
   sqliteFilePath: string;
 };
 
 let cachedConfig: AppConfig | undefined;
+
+function resolveWorkspaceRoot(startDirectory = process.cwd()): string {
+  let currentDirectory = path.resolve(startDirectory);
+
+  for (;;) {
+    if (fs.existsSync(path.join(currentDirectory, "pnpm-workspace.yaml"))) {
+      return currentDirectory;
+    }
+
+    const parentDirectory = path.dirname(currentDirectory);
+    if (parentDirectory === currentDirectory) {
+      return path.resolve(startDirectory);
+    }
+
+    currentDirectory = parentDirectory;
+  }
+}
+
+function resolveWorkspacePath(filePath: string, workspaceRoot: string): string {
+  return path.isAbsolute(filePath) ? filePath : path.resolve(workspaceRoot, filePath);
+}
 
 export function getConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   if (cachedConfig && env === process.env) {
@@ -29,12 +52,13 @@ export function getConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   }
 
   const parsed = RootEnvSchema.parse(env);
-  const resolvedDataDir = path.resolve(parsed.DATA_DIR);
+  const workspaceRoot = resolveWorkspaceRoot();
+  const resolvedDataDir = resolveWorkspacePath(parsed.DATA_DIR, workspaceRoot);
   const sqliteFilePath = parsed.DATABASE_URL.startsWith("file:")
-    ? path.resolve(parsed.DATABASE_URL.slice(5))
+    ? resolveWorkspacePath(parsed.DATABASE_URL.slice(5), workspaceRoot)
     : parsed.DATABASE_URL;
 
-  const config = { ...parsed, resolvedDataDir, sqliteFilePath };
+  const config = { ...parsed, workspaceRoot, resolvedDataDir, sqliteFilePath };
 
   if (env === process.env) {
     cachedConfig = config;

@@ -102,7 +102,7 @@ If you update the default seed files and want to reload them locally, run:
 pnpm db:reset
 ```
 
-This clears the local SQLite files, reruns migrations, and reseeds from the root `test_csvs` fixtures.
+This clears the monorepo-root local SQLite files under `./data`, reruns migrations, and reseeds from the root `test_csvs` fixtures.
 
 ## Import workflow
 
