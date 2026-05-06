@@ -1,0 +1,42 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
+    "jsx": "preserve",
+    "allowJs": false,
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "rootDir": "../..",
+    "noEmit": true,
+    "isolatedModules": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    ".next/types/**/*.ts",
+    "../../packages/contracts/src/**/*.ts",
+    "../../packages/config/src/**/*.ts",
+    "../../packages/db/src/**/*.ts",
+    "../../packages/domain/src/**/*.ts",
+    "../../packages/observability/src/**/*.ts",
+    "../../packages/providers/src/**/*.ts",
+    "../../packages/storage/src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

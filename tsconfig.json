@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "ignoreDeprecations": "5.0",
+    "types": ["node"],
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@demand-planner/contracts": ["packages/contracts/src/index.ts"],
+      "@demand-planner/domain": ["packages/domain/src/index.ts"],
+      "@demand-planner/config": ["packages/config/src/index.ts"],
+      "@demand-planner/db": ["packages/db/src/index.ts"],
+      "@demand-planner/storage": ["packages/storage/src/index.ts"],
+      "@demand-planner/providers": ["packages/providers/src/index.ts"],
+      "@demand-planner/observability": ["packages/observability/src/index.ts"]
+    }
+  }
+}

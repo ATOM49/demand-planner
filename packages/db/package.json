@@ -1,0 +1,30 @@
+{
+  "name": "@demand-planner/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint src drizzle.config.ts --ext .ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/migrate.ts",
+    "db:clear": "tsx src/clear.ts",
+    "db:seed": "tsx src/seed.ts",
+    "db:reset": "pnpm run db:clear && pnpm run db:migrate && pnpm run db:seed"
+  },
+  "dependencies": {
+    "@demand-planner/config": "workspace:*",
+    "@demand-planner/contracts": "workspace:*",
+    "@demand-planner/domain": "workspace:*",
+    "@demand-planner/providers": "workspace:*",
+    "better-sqlite3": "^11.10.0",
+    "drizzle-orm": "^0.43.1",
+    "ulid": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "drizzle-kit": "^0.31.1"
+  }
+}
