@@ -11,7 +11,7 @@ The MVP is designed to run as a single Next.js app in `apps/web`.
 ## Local prerequisites
 
 - Node LTS
-- pnpm 9+
+- pnpm 9.x
 - Writable local filesystem for the SQLite database and staged CSV imports
 
 ## Local verification

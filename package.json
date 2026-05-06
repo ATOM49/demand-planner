@@ -1,7 +1,7 @@
 {
   "name": "demand-planner",
   "private": true,
-  "packageManager": "pnpm@10.0.0",
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
     "dev": "turbo dev --filter=@demand-planner/web",
     "build": "turbo build",

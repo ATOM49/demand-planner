@@ -22,7 +22,7 @@ Local-first demand planning dashboard built as a pnpm monorepo with one Next.js 
 ### Requirements
 
 - Node LTS
-- pnpm 9+
+- pnpm 9.x
 
 ### Install
 
