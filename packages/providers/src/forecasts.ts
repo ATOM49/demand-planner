@@ -100,9 +100,11 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
         return;
       }
 
-      const mean = Number(forecast.values.mean);
+      const forecastValues = forecast.values;
+
+      const mean = Number(forecastValues.mean);
       const finitePercentiles = requiredPercentiles.filter((percentile) =>
-        Number.isFinite(forecast.values[percentile]),
+        Number.isFinite(forecastValues[percentile]),
       );
 
       if (finitePercentiles.length === 0) {
@@ -114,12 +116,12 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
         }
 
         for (const percentile of requiredPercentiles) {
-          forecast.values[percentile] = mean;
+          forecastValues[percentile] = mean;
         }
       }
 
       for (const percentile of requiredPercentiles) {
-        if (!Number.isFinite(forecast.values[percentile])) {
+        if (!Number.isFinite(forecastValues[percentile])) {
           issues.push(
             buildIssue(fileName, rowNumber, itemId, percentile, `Missing percentile field ${percentile}`),
           );
@@ -127,11 +129,11 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
         }
       }
 
-      const p05 = Number(forecast.values.p05);
-      const p25 = Number(forecast.values.p25);
-      const p50 = Number(forecast.values.p50);
-      const p75 = Number(forecast.values.p75);
-      const p95 = Number(forecast.values.p95);
+      const p05 = Number(forecastValues.p05);
+      const p25 = Number(forecastValues.p25);
+      const p50 = Number(forecastValues.p50);
+      const p75 = Number(forecastValues.p75);
+      const p95 = Number(forecastValues.p95);
 
       const hasValidEnvelope = p05 <= p50 && p25 <= p50 && p50 <= p75 && p50 <= p95;
 

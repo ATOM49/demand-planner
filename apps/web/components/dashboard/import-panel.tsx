@@ -4,7 +4,14 @@ import type { SyntheticEvent } from "react";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-import { SectionCard } from "@/components/ui/page-shell";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 import { Button } from "../ui/button";
 
@@ -143,27 +150,44 @@ function ImportUploader({
 
 export function ImportPanel() {
   return (
-    <SectionCard title="Import CSV data">
-      <div className="space-y-4">
-        <div className="rounded-4xl border border-border/70 bg-muted/20 p-4">
-          <p className="text-sm font-medium text-foreground">Default local fixtures</p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            The seeded demo dataset comes from the repository <strong>/test_csvs</strong> folder. The default happy-path
-            imports are <strong>aggregated_data_valid.csv</strong> for actuals and <strong>forecast_data_valid.csv</strong>
-            for forecast runs.
-          </p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Uploading a file here stages it under <strong>data/imports</strong>, updates the local SQLite database, and
-            recomputes alerts for the latest dashboard snapshot.
-          </p>
-        </div>
-        <ImportUploader kind="actuals" label="Actuals CSV" helper="Use the aggregated actuals export format." />
-        <ImportUploader kind="forecasts" label="Forecast CSV" helper="Use the forecast runs export format." />
-        <p className="text-sm leading-6 text-muted-foreground">
-          For scripted local imports, the API still accepts JSON source paths that point at files inside
-          <strong> /test_csvs</strong>.
+    <div className="space-y-4">
+      <div className="rounded-4xl border border-border/70 bg-muted/20 p-4">
+        <p className="text-sm font-medium text-foreground">Default local fixtures</p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          The seeded demo dataset comes from the repository <strong>/test_csvs</strong> folder. The default happy-path
+          imports are <strong>aggregated_data_valid.csv</strong> for actuals and <strong>forecast_data_valid.csv</strong>
+          for forecast runs.
+        </p>
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+          Uploading a file here stages it under <strong>data/imports</strong>, updates the local SQLite database, and
+          recomputes alerts for the latest dashboard snapshot.
         </p>
       </div>
-    </SectionCard>
+      <ImportUploader kind="actuals" label="Actuals CSV" helper="Use the aggregated actuals export format." />
+      <ImportUploader kind="forecasts" label="Forecast CSV" helper="Use the forecast runs export format." />
+      <p className="text-sm leading-6 text-muted-foreground">
+        For scripted local imports, the API still accepts JSON source paths that point at files inside
+        <strong> /test_csvs</strong>.
+      </p>
+    </div>
+  );
+}
+
+export function ImportDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">Import CSV data</Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[min(90vh,52rem)] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Import CSV data</DialogTitle>
+          <DialogDescription>
+            Upload actuals or forecast files, stage them locally, and refresh the dashboard snapshot.
+          </DialogDescription>
+        </DialogHeader>
+        <ImportPanel />
+      </DialogContent>
+    </Dialog>
   );
 }

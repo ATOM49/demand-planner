@@ -25,6 +25,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../ui/drawer";
+import { MetricCard } from "../ui/page-shell";
 
 type DriverKey = keyof SkuDemandDrivers;
 
@@ -68,6 +69,32 @@ function formatDriverValue(value: number | null | undefined, kind: DriverKey) {
 
 function coerceDriverAxisValue(value: string | number) {
   return typeof value === "number" ? value : Number(value);
+}
+
+function getLatestActualValue(series: SkuDemandDrivers[DriverKey]) {
+  return series.actuals.at(-1)?.value ?? null;
+}
+
+function getFirstForecastValue(series: SkuDemandDrivers[DriverKey]) {
+  return series.forecast.find((point) => point.value !== null)?.value ?? null;
+}
+
+function calculateDeltaPct(actual: number | null, forecast: number | null) {
+  if (actual === null || forecast === null || actual === 0) {
+    return null;
+  }
+
+  return (forecast - actual) / actual;
+}
+
+function formatDelta(value: number | null, kind: DriverKey) {
+  if (value === null) {
+    return "--";
+  }
+
+  const sign = value >= 0 ? "+" : "";
+  const digits = kind === "custInStock" ? 1 : 1;
+  return `${sign}${(value * 100).toFixed(digits)}%`;
 }
 
 function DemandDriverChart({
@@ -117,6 +144,15 @@ function DemandDriverChart({
 }
 
 export function DemandDriversDrawer({ data }: { data: SkuSeriesResponse }) {
+  const priceDelta = calculateDeltaPct(
+    getLatestActualValue(data.demandDrivers.avgUnitPrice),
+    getFirstForecastValue(data.demandDrivers.avgUnitPrice),
+  );
+  const inStockDelta = calculateDeltaPct(
+    getLatestActualValue(data.demandDrivers.custInStock),
+    getFirstForecastValue(data.demandDrivers.custInStock),
+  );
+
   return (
     <Drawer direction="right">
       <DrawerTrigger asChild>
@@ -147,6 +183,18 @@ export function DemandDriversDrawer({ data }: { data: SkuSeriesResponse }) {
 
           <div className="flex-1 overflow-y-auto p-5">
             <div className="grid gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <MetricCard
+                  label="Projected price delta"
+                  value={formatDelta(priceDelta, "avgUnitPrice")}
+                  helper="First projected week vs latest actual price"
+                />
+                <MetricCard
+                  label="Projected in-stock delta"
+                  value={formatDelta(inStockDelta, "custInStock")}
+                  helper="First projected week vs latest actual in-stock"
+                />
+              </div>
               <DemandDriverChart
                 description="Average unit price history alongside the projected forward path from the latest inference run."
                 driver={data.demandDrivers.avgUnitPrice}

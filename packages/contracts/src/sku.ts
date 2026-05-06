@@ -28,11 +28,29 @@ export const DashboardAggregateSeriesSchema = z.object({
   forecast: z.array(AggregateForecastPointSchema),
 });
 
+export const DashboardMetricsSchema = z.object({
+  trackedSkuCount: z.number().int().nonnegative(),
+  trailing4WeekActualUnits: z.number().nullable(),
+  next4WeekForecastUnits: z.number().nullable(),
+  next4WeekForecastGapUnits: z.number().nullable(),
+  next4WeekForecastGapPct: z.number().nullable(),
+  next13WeekForecastUnits: z.number().nullable(),
+  next13WeekProjectedRevenue: z.number().nullable(),
+  next13WeekUncertaintyBuffer: z.number().nullable(),
+  latestModelId: z.string().nullable(),
+  latestRunId: z.string().nullable(),
+});
+
 export const SkuSummarySchema = z.object({
   sku: z.string().min(1),
   latestInferenceDate: z.iso.date().nullable(),
   latestActualDate: z.iso.date().nullable(),
   latestActualUnits: z.number().nullable(),
+  latestForecastUnits: z.number().nullable(),
+  firstForecastGapPct: z.number().nullable(),
+  projectedRevenue13Weeks: z.number().nullable(),
+  projectedPriceDeltaPct: z.number().nullable(),
+  projectedInStockDeltaPct: z.number().nullable(),
   severity: z.enum(["low", "medium", "high"]).nullable(),
   reasons: z.array(z.string()),
 });
@@ -55,6 +73,7 @@ export const SkuSeriesResponseSchema = z.object({
 export const DashboardDataSchema = z.object({
   latestInferenceDate: z.iso.date().nullable(),
   aggregateSeries: DashboardAggregateSeriesSchema,
+  metrics: DashboardMetricsSchema,
   alerts: z.array(AlertSchema),
   skuSummaries: z.array(SkuSummarySchema),
 });
@@ -68,6 +87,7 @@ export type SkuListQuery = z.infer<typeof SkuListQuerySchema>;
 export type SkuListResponse = z.infer<typeof SkuListResponseSchema>;
 export type DashboardAggregateSeries = z.infer<typeof DashboardAggregateSeriesSchema>;
 export type DashboardData = z.infer<typeof DashboardDataSchema>;
+export type DashboardMetrics = z.infer<typeof DashboardMetricsSchema>;
 export type SkuDemandDrivers = z.infer<typeof SkuDemandDriversSchema>;
 export type SkuSeriesResponse = z.infer<typeof SkuSeriesResponseSchema>;
 export type SkuSummary = z.infer<typeof SkuSummarySchema>;

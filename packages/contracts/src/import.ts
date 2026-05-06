@@ -5,7 +5,7 @@ export const ImportUploadFieldName = "file";
 export const AggregatedActualImportRowSchema = z.object({
   sku: z.string().min(1),
   date: z.iso.date(),
-  unitsSold: z.number().nonnegative(),
+  unitsSold: z.number(),
   avgUnitPrice: z.number(),
   custInStock: z.number().min(0).max(1),
 });

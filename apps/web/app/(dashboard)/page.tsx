@@ -2,14 +2,14 @@ import { EmptyState, PageShell, SectionCard } from "@/components/ui/page-shell";
 
 import { DemandSeriesChart } from "../../components/charts/sku-series-chart";
 import { AlertSummaryGrid } from "../../components/dashboard/alert-summary-grid";
-import { ImportPanel } from "../../components/dashboard/import-panel";
+import { ImportDialog } from "../../components/dashboard/import-panel";
 import { SkuTable } from "../../components/dashboard/sku-table";
 import { getDashboardPageData } from "../../lib/server/dashboard";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const { alerts, summaries, aggregateSeries, latestInferenceDate } = await getDashboardPageData();
+  const { alerts, summaries, aggregateSeries, latestInferenceDate, metrics } = await getDashboardPageData();
   const hasAggregateSeries =
     aggregateSeries.actuals.length > 0 || aggregateSeries.forecast.length > 0;
 
@@ -19,6 +19,7 @@ export default async function DashboardPage() {
         <div className="lg:col-span-12">
           <AlertSummaryGrid
             alerts={alerts}
+            metrics={metrics}
             summaries={summaries}
             latestInferenceDate={latestInferenceDate}
           />
@@ -35,6 +36,11 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground">
                   Latest inference date:{" "}
                   <strong>{latestInferenceDate ?? "No forecast run loaded"}</strong>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Snapshot metadata:{" "}
+                  <strong>{metrics.latestModelId ?? "Unknown model"}</strong>
+                  {metrics.latestRunId ? ` (${metrics.latestRunId})` : ""}
                 </p>
               </div>
 
@@ -54,12 +60,9 @@ export default async function DashboardPage() {
           </SectionCard>
         </div>
         <div className="lg:col-span-12">
-          <SectionCard title="All SKU summaries">
+          <SectionCard title="All SKU summaries" action={<ImportDialog />}>
             <SkuTable summaries={summaries} />
           </SectionCard>
-        </div>
-        <div className="lg:col-span-12">
-          <ImportPanel />
         </div>
       </div>
     </PageShell>

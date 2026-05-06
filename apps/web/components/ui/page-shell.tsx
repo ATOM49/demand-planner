@@ -24,11 +24,16 @@ export function PageShell({
   );
 }
 
-export function SectionCard({ title, children }: PropsWithChildren<{ title: string }>) {
+export function SectionCard({
+  title,
+  action,
+  children,
+}: PropsWithChildren<{ title: string; action?: ReactNode }>) {
   return (
     <Card className="gap-4 border border-border/80 bg-card/90 text-card-foreground backdrop-blur-md">
-      <header className="border-b border-border/70 px-6 pb-4 group-data-[size=sm]/card:px-4">
+      <header className="flex items-center justify-between gap-3 border-b border-border/70 px-6 pb-4 group-data-[size=sm]/card:px-4">
         <CardTitle>{title}</CardTitle>
+        {action ? <div className="shrink-0">{action}</div> : null}
       </header>
       <CardContent className="space-y-4">{children}</CardContent>
     </Card>

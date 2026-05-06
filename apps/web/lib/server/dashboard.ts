@@ -18,8 +18,8 @@ export function parseSkuListQuery(searchParams: URLSearchParams): SkuListQuery {
 }
 
 export async function getDashboardPageData() {
-  const { alerts, skuSummaries, aggregateSeries, latestInferenceDate } = await loadDashboardData();
-  return { alerts, summaries: skuSummaries, aggregateSeries, latestInferenceDate };
+  const { alerts, skuSummaries, aggregateSeries, latestInferenceDate, metrics } = await loadDashboardData();
+  return { alerts, summaries: skuSummaries, aggregateSeries, latestInferenceDate, metrics };
 }
 
 export async function getDashboardHeaderData() {

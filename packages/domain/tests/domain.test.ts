@@ -133,6 +133,31 @@ describe("domain services", () => {
     expect(summaries[0]?.sku).toBe("SKU_A");
   });
 
+  it("uses the first non-null projected driver values for deltas", () => {
+    const actuals: ActualObservation[] = [
+      { sku: "SKU_A", date: "2025-04-13", unitsSold: 102, avgUnitPrice: 10, custInStock: 0.95 },
+    ];
+    const forecasts: ForecastProjection[] = [
+      { sku: "SKU_A", date: "2025-04-20", inferenceDate: "2025-04-13", p05: 95, p50: 101, p95: 110, projectedPrice: null, projectedInStock: null },
+      { sku: "SKU_A", date: "2025-04-27", inferenceDate: "2025-04-13", p05: 96, p50: 103, p95: 112, projectedPrice: 11, projectedInStock: 0.8 },
+    ];
+
+    const alerts = evaluateAlerts(actuals, forecasts, thresholds);
+
+    expect(alerts[0]?.metrics.projectedPriceDeltaPct).toBe(0.1);
+    expect(alerts[0]?.metrics.projectedInStockDeltaPct).toBeCloseTo(-0.1578947368);
+    expect(alerts[0]?.reasons).toEqual(
+      expect.arrayContaining(["projected_price_change", "projected_in_stock_change"]),
+    );
+
+    const summaries = buildDashboardSummaries(actuals, forecasts, alerts);
+
+    expect(summaries[0]).toMatchObject({
+      projectedPriceDeltaPct: 0.1,
+      projectedInStockDeltaPct: -0.16,
+    });
+  });
+
   it("pins dashboard summaries and alerts to the latest global inference run", () => {
     const actuals: ActualObservation[] = [
       { sku: "SKU_A", date: "2025-04-13", unitsSold: 100, avgUnitPrice: 10, custInStock: 0.95 },
@@ -197,5 +222,65 @@ describe("domain services", () => {
     expect(dashboard.aggregateSeries.forecast).toHaveLength(39);
     expect(dashboard.aggregateSeries.forecast[0]?.date).toBe("2025-02-03");
     expect(dashboard.aggregateSeries.forecast.at(-1)?.date).toBe("2025-02-41");
+  });
+
+  it("computes dashboard metrics and sku planning summaries from the latest snapshot", () => {
+    const actuals: ActualObservation[] = [
+      { sku: "SKU_A", date: "2025-01-05", unitsSold: 10, avgUnitPrice: 1.5, custInStock: 0.8 },
+      { sku: "SKU_A", date: "2025-01-12", unitsSold: 12, avgUnitPrice: 1.5, custInStock: 0.8 },
+      { sku: "SKU_A", date: "2025-01-19", unitsSold: 14, avgUnitPrice: 1.5, custInStock: 0.8 },
+      { sku: "SKU_A", date: "2025-01-26", unitsSold: 16, avgUnitPrice: 1.5, custInStock: 0.8 },
+      { sku: "SKU_B", date: "2025-01-05", unitsSold: 20, avgUnitPrice: 3, custInStock: 0.9 },
+      { sku: "SKU_B", date: "2025-01-12", unitsSold: 20, avgUnitPrice: 3, custInStock: 0.9 },
+      { sku: "SKU_B", date: "2025-01-19", unitsSold: 20, avgUnitPrice: 3, custInStock: 0.9 },
+      { sku: "SKU_B", date: "2025-01-26", unitsSold: 20, avgUnitPrice: 3, custInStock: 0.9 },
+    ];
+    const forecasts: ForecastProjection[] = [
+      { sku: "SKU_A", date: "2025-02-02", inferenceDate: "2025-01-26", p05: 12, p50: 15, p95: 18, projectedPrice: 2, projectedInStock: 0.9, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_A", date: "2025-02-09", inferenceDate: "2025-01-26", p05: 12, p50: 15, p95: 18, projectedPrice: 2, projectedInStock: 0.9, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_A", date: "2025-02-16", inferenceDate: "2025-01-26", p05: 12, p50: 15, p95: 18, projectedPrice: 2, projectedInStock: 0.9, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_A", date: "2025-02-23", inferenceDate: "2025-01-26", p05: 12, p50: 15, p95: 18, projectedPrice: 2, projectedInStock: 0.9, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_B", date: "2025-02-02", inferenceDate: "2025-01-26", p05: 20, p50: 25, p95: 30, projectedPrice: 4, projectedInStock: 0.95, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_B", date: "2025-02-09", inferenceDate: "2025-01-26", p05: 20, p50: 25, p95: 30, projectedPrice: 4, projectedInStock: 0.95, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_B", date: "2025-02-16", inferenceDate: "2025-01-26", p05: 20, p50: 25, p95: 30, projectedPrice: 4, projectedInStock: 0.95, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_B", date: "2025-02-23", inferenceDate: "2025-01-26", p05: 20, p50: 25, p95: 30, projectedPrice: 4, projectedInStock: 0.95, modelId: "model_v2", runId: "run_latest" },
+      { sku: "SKU_A", date: "2025-02-02", inferenceDate: "2025-01-19", p05: 11, p50: 13, p95: 16, projectedPrice: 1.8, projectedInStock: 0.85, modelId: "model_v1", runId: "run_stale" },
+    ];
+
+    const dashboard = buildDashboardData(actuals, forecasts, []);
+
+    expect(dashboard.metrics).toMatchObject({
+      trackedSkuCount: 2,
+      trailing4WeekActualUnits: 132,
+      next4WeekForecastUnits: 160,
+      next4WeekForecastGapUnits: 28,
+      next4WeekForecastGapPct: 0.21,
+      next13WeekForecastUnits: 160,
+      next13WeekProjectedRevenue: 520,
+      next13WeekUncertaintyBuffer: 32,
+      latestModelId: "model_v2",
+      latestRunId: "run_latest",
+    });
+
+    expect(dashboard.skuSummaries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sku: "SKU_A",
+          latestForecastUnits: 15,
+          firstForecastGapPct: 0.15,
+          projectedRevenue13Weeks: 120,
+          projectedPriceDeltaPct: 0.33,
+          projectedInStockDeltaPct: 0.12,
+        }),
+        expect.objectContaining({
+          sku: "SKU_B",
+          latestForecastUnits: 25,
+          firstForecastGapPct: 0.25,
+          projectedRevenue13Weeks: 400,
+          projectedPriceDeltaPct: 0.33,
+          projectedInStockDeltaPct: 0.06,
+        }),
+      ]),
+    );
   });
 });

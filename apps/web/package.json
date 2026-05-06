@@ -19,6 +19,7 @@
     "@demand-planner/providers": "workspace:*",
     "@demand-planner/storage": "workspace:*",
     "@tailwindcss/postcss": "^4.2.4",
+    "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.14.0",

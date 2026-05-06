@@ -17,6 +17,20 @@ function average(values: number[]): number | null {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+function getFirstProjectedDriverValue(
+  forecasts: ForecastProjection[],
+  key: "projectedPrice" | "projectedInStock",
+): number | null {
+  for (const forecast of forecasts) {
+    const value = forecast[key];
+    if (value !== null) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 export function evaluateAlerts(
   actuals: ActualObservation[],
   forecasts: ForecastProjection[],
@@ -76,9 +90,10 @@ export function evaluateAlerts(
         reasons.push("wide_uncertainty_band");
       }
 
+      const firstProjectedPrice = getFirstProjectedDriverValue(orderedForecasts, "projectedPrice");
       const projectedPriceDeltaPct =
-        latestActual && firstForecast.projectedPrice !== null && latestActual.avgUnitPrice !== 0
-          ? (firstForecast.projectedPrice - latestActual.avgUnitPrice) / latestActual.avgUnitPrice
+        latestActual && firstProjectedPrice !== null && latestActual.avgUnitPrice !== 0
+          ? (firstProjectedPrice - latestActual.avgUnitPrice) / latestActual.avgUnitPrice
           : null;
       if (
         projectedPriceDeltaPct !== null &&
@@ -87,9 +102,10 @@ export function evaluateAlerts(
         reasons.push("projected_price_change");
       }
 
+      const firstProjectedInStock = getFirstProjectedDriverValue(orderedForecasts, "projectedInStock");
       const projectedInStockDeltaPct =
-        latestActual && firstForecast.projectedInStock !== null && latestActual.custInStock !== 0
-          ? (firstForecast.projectedInStock - latestActual.custInStock) / latestActual.custInStock
+        latestActual && firstProjectedInStock !== null && latestActual.custInStock !== 0
+          ? (firstProjectedInStock - latestActual.custInStock) / latestActual.custInStock
           : null;
       if (
         projectedInStockDeltaPct !== null &&
