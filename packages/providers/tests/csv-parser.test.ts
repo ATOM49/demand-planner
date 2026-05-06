@@ -35,10 +35,13 @@ describe("CSV providers", () => {
       readFixtureRecords(fixtureFile),
     ]);
     const firstFixtureRecord = fixtureRecords[0];
-    const firstDemandDrivers = JSON.parse(firstFixtureRecord?.demand_drivers ?? "{}") as {
-      avg_unit_price: number;
-      cust_instock: number;
-    };
+    const firstDemandDrivers = JSON.parse(firstFixtureRecord?.demand_drivers ?? "{}") as Record<
+      string,
+      unknown
+    >;
+
+    expect(typeof firstDemandDrivers.avg_unit_price).toBe("number");
+    expect(typeof firstDemandDrivers.cust_instock).toBe("number");
 
     expect(rows.length).toBeGreaterThan(30);
     expect(rows).toHaveLength(fixtureRecords.length);
@@ -47,8 +50,8 @@ describe("CSV providers", () => {
       sku: firstFixtureRecord?.item_id,
       date: firstFixtureRecord?.timestamp,
       unitsSold: Number(firstFixtureRecord?.units_sold),
-      avgUnitPrice: firstDemandDrivers.avg_unit_price,
-      custInStock: firstDemandDrivers.cust_instock,
+      avgUnitPrice: Number(firstDemandDrivers.avg_unit_price),
+      custInStock: Number(firstDemandDrivers.cust_instock),
     });
   });
 
