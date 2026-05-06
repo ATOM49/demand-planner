@@ -34,7 +34,7 @@ These files intentionally include invalid rows to test ingestion validation and 
 - Invalid `demand_drivers` JSON
 - Missing `avg_unit_price`
 - `cust_instock` outside 0-1
-- Negative `units_sold`
+- Missing `units_sold`
 - Duplicate natural key: `item_id + timestamp`
 
 ### Forecast failure cases

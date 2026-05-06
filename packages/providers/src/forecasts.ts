@@ -14,6 +14,7 @@ type RawDriverSnapshot = {
   timestamp?: unknown;
   avg_unit_price?: unknown;
   cust_instock?: unknown;
+  values?: Record<string, unknown>;
 };
 
 const requiredPercentiles = ["p05", "p10", "p25", "p50", "p75", "p90", "p95"] as const;
@@ -86,6 +87,7 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
     }
 
     const normalizedForecasts = rawForecasts.map((entry) => entry as RawForecastPoint);
+    const forecastTimestamps: string[] = [];
 
     for (const forecast of normalizedForecasts) {
       if (typeof forecast.timestamp !== "string" || !isIsoDate(forecast.timestamp)) {
@@ -96,6 +98,24 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
       if (!isObject(forecast.values)) {
         issues.push(buildIssue(fileName, rowNumber, itemId, "forecasts.values", "Missing forecast values"));
         return;
+      }
+
+      const mean = Number(forecast.values.mean);
+      const finitePercentiles = requiredPercentiles.filter((percentile) =>
+        Number.isFinite(forecast.values[percentile]),
+      );
+
+      if (finitePercentiles.length === 0) {
+        if (!Number.isFinite(mean)) {
+          issues.push(
+            buildIssue(fileName, rowNumber, itemId, "forecasts.values", "Missing forecast values"),
+          );
+          return;
+        }
+
+        for (const percentile of requiredPercentiles) {
+          forecast.values[percentile] = mean;
+        }
       }
 
       for (const percentile of requiredPercentiles) {
@@ -121,6 +141,8 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
         );
         return;
       }
+
+      forecastTimestamps.push(forecast.timestamp);
     }
 
     const demandDriversJson = record.demand_drivers;
@@ -147,9 +169,13 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
     }
 
     const normalizedDrivers = rawDrivers.map((entry) => entry as RawDriverSnapshot);
+    const alignedDriverTimestamps = new Set(forecastTimestamps);
+    const parsedDrivers: ForecastImportRun["demandDrivers"] = [];
+
     for (const driver of normalizedDrivers) {
-      const avgUnitPrice = Number(driver.avg_unit_price);
-      const customerInStock = Number(driver.cust_instock);
+      const driverValues = isObject(driver.values) ? driver.values : driver;
+      const avgUnitPrice = Number(driverValues.avg_unit_price);
+      const customerInStock = Number(driverValues.cust_instock);
 
       if (
         typeof driver.timestamp !== "string" ||
@@ -174,6 +200,23 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
         );
         return;
       }
+
+      if (!alignedDriverTimestamps.has(driver.timestamp)) {
+        continue;
+      }
+
+      parsedDrivers.push({
+        timestamp: driver.timestamp,
+        avg_unit_price: avgUnitPrice,
+        cust_instock: customerInStock,
+      });
+    }
+
+    if (parsedDrivers.length < 40) {
+      issues.push(
+        buildIssue(fileName, rowNumber, itemId, "demand_drivers", "Projected demand_drivers must align to 40 forecast weeks"),
+      );
+      return;
     }
 
     let autoFeatures: unknown;
@@ -188,7 +231,7 @@ export function parseForecastRunsCsv(input: string, fileName: string): ForecastI
         sku: itemId,
         inferenceDate,
         forecasts: normalizedForecasts,
-        demandDrivers: normalizedDrivers,
+        demandDrivers: parsedDrivers,
         autoFeatures: isObject(autoFeatures) ? autoFeatures : {},
         modelId: metadata.modelId,
         runId: metadata.runId,

@@ -48,17 +48,6 @@ export function parseAggregatedActualsCsv(input: string, fileName: string): Aggr
       return;
     }
 
-    if (unitsSold < 0) {
-      issues.push({
-        fileName,
-        rowNumber,
-        itemId,
-        field: "units_sold",
-        reason: "units_sold must be non-negative",
-      });
-      return;
-    }
-
     if (!demandDriversRaw) {
       issues.push({
         fileName,

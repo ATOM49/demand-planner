@@ -6,5 +6,5 @@ SKU_BAD_UNITS,2025-04-20,abc,"{""avg_unit_price"": 10.5, ""cust_instock"": 0.95}
 SKU_BAD_JSON,2025-04-20,100,"{""avg_unit_price"": 10.5, ""cust_instock"": 0.95"
 SKU_MISSING_PRICE,2025-04-20,100,"{""cust_instock"": 0.95}"
 SKU_BAD_INSTOCK,2025-04-20,100,"{""avg_unit_price"": 10.5, ""cust_instock"": 1.25}"
-SKU_NEGATIVE_UNITS,2025-04-20,-5,"{""avg_unit_price"": 10.5, ""cust_instock"": 0.95}"
+SKU_MISSING_UNITS,2025-04-20,,"{""avg_unit_price"": 10.5, ""cust_instock"": 0.95}"
 SKU_FAILURE_CONTROL,2025-04-20,110,"{""avg_unit_price"": 11.0, ""cust_instock"": 0.96}"
