@@ -10,10 +10,12 @@ Local-first demand planning dashboard built as a pnpm monorepo with one Next.js 
 - Serves a dashboard, SKU detail page, and thin API routes from the same Next.js app.
 
 ### Dashboard
-<img width="1367" height="822" alt="image" src="https://github.com/user-attachments/assets/441dca0e-727e-4bcd-af1e-f07f383e9b28" />
+
+<img width="1227" height="806" alt="image" src="https://github.com/user-attachments/assets/39f40389-1b7e-4b22-ba5a-cb3507f172b0" />
 
 ### SKU Detail
-<img width="1512" height="829" alt="image" src="https://github.com/user-attachments/assets/b3ec005a-94c8-4f97-b9fc-d770937528d8" />
+<img width="1225" height="809" alt="image" src="https://github.com/user-attachments/assets/e3f5bfdb-4fca-40f3-a56e-879293bdba75" />
+
 
 ## Stack
 

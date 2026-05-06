@@ -1,5 +1,7 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 
+import { parse as parseCsv } from "csv-parse/sync";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -15,19 +17,45 @@ const fixturesDir = path.resolve(
   "../../../test_csvs",
 );
 
+type FixtureRecord = Record<string, string>;
+
+async function readFixtureRecords(fileName: string): Promise<FixtureRecord[]> {
+  const input = await fs.readFile(path.join(fixturesDir, fileName), "utf8");
+  return parseCsv(input, {
+    columns: true,
+    skip_empty_lines: true,
+  }) as FixtureRecord[];
+}
+
 describe("CSV providers", () => {
   it("parses the valid aggregated actuals fixture", async () => {
-    const rows = await parseAggregatedActualsCsvFile(
-      path.join(fixturesDir, "aggregated_data_valid.csv"),
-    );
+    const fixtureFile = "aggregated_data_valid.csv";
+    const [rows, fixtureRecords] = await Promise.all([
+      parseAggregatedActualsCsvFile(path.join(fixturesDir, fixtureFile)),
+      readFixtureRecords(fixtureFile),
+    ]);
+    const firstFixtureRecord = fixtureRecords[0];
+    const firstDemandDrivers = JSON.parse(firstFixtureRecord?.demand_drivers ?? "{}") as Record<
+      string,
+      unknown
+    >;
+
+    expect(typeof firstDemandDrivers.avg_unit_price).toBe("number");
+    expect(typeof firstDemandDrivers.cust_instock).toBe("number");
 
     expect(rows.length).toBeGreaterThan(30);
-    expect(new Set(rows.map((row) => row.sku))).toEqual(
-      new Set(["SKU_STABLE_001", "SKU_SPIKE_002", "SKU_LOW_INSTOCK_003"]),
-    );
+    expect(rows).toHaveLength(fixtureRecords.length);
+    expect(new Set(rows.map((row) => row.sku))).toEqual(new Set(fixtureRecords.map((row) => row.item_id)));
+    expect(rows[0]).toEqual({
+      sku: firstFixtureRecord?.item_id,
+      date: firstFixtureRecord?.timestamp,
+      unitsSold: Number(firstFixtureRecord?.units_sold),
+      avgUnitPrice: Number(firstDemandDrivers.avg_unit_price),
+      custInStock: Number(firstDemandDrivers.cust_instock),
+    });
   });
 
-  it("accepts signed units_sold values in aggregated actuals", async () => {
+  it("accepts signed units_sold values in aggregated actuals", () => {
     const rows = parseAggregatedActualsCsv(
       [
         'item_id,timestamp,units_sold,demand_drivers',
@@ -47,13 +75,16 @@ describe("CSV providers", () => {
     ]);
   });
 
-  it("parses the valid forecast fixture with stale and latest runs", async () => {
+  it("parses the valid forecast fixture across all imported runs", async () => {
     const runs = await parseForecastRunsCsvFile(path.join(fixturesDir, "forecast_data_valid.csv"));
 
-    expect(runs.length).toBeGreaterThanOrEqual(5);
+    expect(runs.length).toBeGreaterThanOrEqual(1000);
     expect(runs.every((run) => run.forecasts.length >= 40)).toBe(true);
-    expect(runs.some((run) => run.runId.includes("run_old"))).toBe(true);
-    expect(runs.some((run) => run.runId.includes("run_latest"))).toBe(true);
+    expect(runs.every((run) => run.demandDrivers.length >= 40)).toBe(true);
+    expect(new Set(runs.map((run) => run.runId)).size).toBeGreaterThan(1);
+    expect(new Set(runs.map((run) => run.inferenceDate)).size).toBeGreaterThan(1);
+    expect(runs.every((run) => run.modelId.length > 0)).toBe(true);
+    expect(runs.every((run) => run.clientId.length > 0)).toBe(true);
   });
 
   it("accepts nested projected demand drivers and aligns them to forecast weeks", () => {
